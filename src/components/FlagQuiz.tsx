@@ -40,11 +40,8 @@ function FlagQuiz() {
   const [voiceSupported, setVoiceSupported] = useState<boolean>(true);
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceSelectedOption, setVoiceSelectedOption] = useState<string | null>(null);
-  const [showAvailableOptions, setShowAvailableOptions] = useState<boolean>(false);
   const [voiceMode, setVoiceMode] = useState<boolean>(true);
-  const [matchedCountry, setMatchedCountry] = useState<string | null>(null);
-  const [matchedAlias, setMatchedAlias] = useState<string | null>(null);
-  
+
   // Ref to store the question start time
   const questionStartTime = useRef<number>(0);
   // Reference for the SpeechRecognition API
@@ -218,7 +215,6 @@ function FlagQuiz() {
       // Don't reset voice text state to avoid UI updates
       // setVoiceText('');
       // setVoiceSelectedOption(null);
-      setShowAvailableOptions(false);
     }
   }, [quizState.questionIndex, loading, quizState.selectedAnswer, quizState.gameOver, countdown]);
 
@@ -328,12 +324,6 @@ function FlagQuiz() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quizState.questionIndex, voiceMode, quizState.gameOver, loading]);
 
-  // Directly select a country by clicking on the speech options overlay
-  const selectCountryFromOverlay = (countryCode: string) => {
-    setShowAvailableOptions(false);
-    checkAnswer(countryCode);
-  };
-
   const startQuiz = () => {
     const newQuestions = generateQuiz(TOTAL_QUESTIONS);
     setQuestions(newQuestions);
@@ -350,7 +340,6 @@ function FlagQuiz() {
     setLastPoints(0);
     setVoiceText('');
     setVoiceSelectedOption(null);
-    setShowAvailableOptions(false);
     setLoading(false);
   };
 
@@ -403,9 +392,6 @@ function FlagQuiz() {
       selectedAnswer: null,
       isCorrect: null,
     });
-    
-    // Reset overlay when moving to next question
-    setShowAvailableOptions(false);
   };
 
   if (loading) {
@@ -471,10 +457,10 @@ function FlagQuiz() {
           voiceSupported={voiceSupported}
           voiceSelectedOption={voiceSelectedOption}
           voiceText={voiceText}
-          matchedCountry={matchedCountry}
+          matchedCountry={null}
           isCorrect={quizState.isCorrect}
           selectedAnswer={quizState.selectedAnswer}
-          matchedAlias={matchedAlias}
+          matchedAlias={null}
         />
         
         <div className="options-container">
