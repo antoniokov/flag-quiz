@@ -4,6 +4,10 @@ import { generateQuiz } from '../utils/quizUtils';
 import FlagOption from './FlagOption';
 import QuizResult from './QuizResult';
 import '../styles/FlagQuiz.css';
+import IntroScreen from './IntroScreen';
+import Countdown from './Countdown';
+import Header from './Header';
+import VoiceFeedback from './VoiceFeedback';
 
 // Add TypeScript interfaces for the Web Speech API
 declare global {
@@ -465,121 +469,19 @@ function FlagQuiz() {
   // Show intro screen
   if (showIntro) {
     return (
-      <div className="intro-screen" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '70vh',
-        textAlign: 'center',
-        padding: '2rem',
-      }}>
-        <h1 style={{
-          fontSize: '3rem',
-          fontWeight: 700,
-          color: '#2563eb',
-          marginBottom: '2rem',
-        }}>
-          Flag Quiz
-        </h1>
-        <p style={{
-          fontSize: '1.2rem',
-          marginBottom: '1.5rem',
-          maxWidth: '600px',
-          lineHeight: 1.6,
-        }}>
-          Test your knowledge of flags from around the world! Identify each flag correctly to earn points. 
-          The faster you answer, the more points you'll get.
-        </p>
-        
-        {voiceSupported && (
-          <div className="voice-mode-option" style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '2rem',
-            gap: '1rem',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-          }}>
-            <button
-              onClick={toggleVoiceMode}
-              style={{
-                background: voiceMode ? '#2563eb' : '#f3f4f6',
-                border: voiceMode ? '2px solid #2563eb' : '2px solid #ccc',
-                color: voiceMode ? '#fff' : '#888',
-                borderRadius: '50%',
-                width: '2.5rem',
-                height: '2.5rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.3rem',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                outline: 'none',
-                boxShadow: voiceMode ? '0 0 0 2px #bcd6fa' : 'none',
-              }}
-              aria-label={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
-              title={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
-            >
-              <span aria-hidden="true" style={{ pointerEvents: 'none', filter: voiceMode ? 'none' : 'grayscale(0.8)' }}>
-                🎤
-              </span>
-            </button>
-            <span style={{ fontWeight: 500 }}>
-              Voice Mode: {voiceMode ? 'On' : 'Off'}
-            </span>
-          </div>
-        )}
-        
-        <button 
-          onClick={handleStartQuiz}
-          style={{
-            background: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '0.5rem',
-            padding: '1rem 3rem',
-            fontSize: '1.5rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)',
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 10px rgba(37, 99, 235, 0.3)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 6px rgba(37, 99, 235, 0.25)';
-          }}
-        >
-          Start Quiz
-        </button>
-      </div>
+      <IntroScreen
+        onStart={handleStartQuiz}
+        voiceSupported={voiceSupported}
+        toggleVoiceMode={toggleVoiceMode}
+        voiceMode={voiceMode}
+      />
     );
   }
 
   // Show countdown before first question
   if (quizState.questionIndex === 0 && countdown > 0 && !quizState.selectedAnswer && !quizState.gameOver) {
     return (
-      <div className="countdown" style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '60vh',
-        fontSize: '3rem',
-        fontWeight: 700,
-        color: '#2563eb',
-        letterSpacing: '0.1em',
-      }}>
-        Starting in {countdown}
-      </div>
+      <Countdown countdown={countdown} />
     );
   }
 
@@ -598,49 +500,14 @@ function FlagQuiz() {
 
   return (
     <div className="flag-quiz">
-      <div className="quiz-header" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0.5rem 1rem',
-        borderBottom: '1px solid #eee',
-        marginBottom: '1.5rem',
-        gap: '1.5rem',
-      }}>
-        <div className="quiz-progress" style={{ fontWeight: 500 }}>
-          Question {quizState.questionIndex + 1} of {quizState.totalQuestions}
-        </div>
-        <div className="quiz-score" style={{ fontWeight: 500 }}>
-          Score: {quizState.score}
-        </div>
-        <button
-          className={`voice-mode-icon-button${voiceMode ? ' enabled' : ' disabled'}`}
-          onClick={toggleVoiceMode}
-          disabled={quizState.gameOver}
-          aria-label={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
-          title={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
-          style={{
-            background: voiceMode ? '#2563eb' : '#f3f4f6',
-            border: voiceMode ? '2px solid #2563eb' : '2px solid #ccc',
-            color: voiceMode ? '#fff' : '#888',
-            borderRadius: '50%',
-            width: '2.8rem',
-            height: '2.8rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.5rem',
-            boxShadow: voiceMode ? '0 0 0 2px #bcd6fa' : 'none',
-            cursor: quizState.gameOver ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s',
-            outline: 'none',
-          }}
-        >
-          <span aria-hidden="true" style={{ pointerEvents: 'none', filter: voiceMode ? 'none' : 'grayscale(0.8)' }}>
-            🎤
-          </span>
-        </button>
-      </div>
+      <Header
+        questionNumber={quizState.questionIndex + 1}
+        totalQuestions={quizState.totalQuestions}
+        score={quizState.score}
+        voiceMode={voiceMode}
+        toggleVoiceMode={toggleVoiceMode}
+        gameOver={quizState.gameOver}
+      />
       
       <div className="quiz-content">
         <div className="quiz-question">
@@ -654,22 +521,15 @@ function FlagQuiz() {
           </div>
         </div>
         
-        {voiceSupported && voiceSelectedOption === null && voiceText && !quizState.selectedAnswer && (
-          <div className="voice-text">
-            You said: "{voiceText}"
-            <div className="voice-no-match">No matching country found</div>
-          </div>
-        )}
-        
-        {voiceSupported && voiceSelectedOption !== null && matchedCountry && !quizState.isCorrect && (
-          <div className="voice-text">
-            <div>You said: "{voiceText}"</div>
-            <div className="voice-match">
-              Matched to: {matchedCountry}
-              {matchedAlias && ` (recognized as "${matchedAlias}")`}
-            </div>
-          </div>
-        )}
+        <VoiceFeedback
+          voiceSupported={voiceSupported}
+          voiceSelectedOption={voiceSelectedOption}
+          voiceText={voiceText}
+          matchedCountry={matchedCountry}
+          isCorrect={quizState.isCorrect}
+          selectedAnswer={quizState.selectedAnswer}
+          matchedAlias={matchedAlias}
+        />
         
         <div className="options-container">
           {currentQuestion.options.map((country) => (

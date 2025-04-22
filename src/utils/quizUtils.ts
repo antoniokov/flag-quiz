@@ -1,4 +1,4 @@
-import { Country, QuizQuestion } from '../types';
+import { QuizQuestion } from '../types';
 import { countries, getSimilarCountries } from '../data/countries';
 
 // Shuffle an array using Fisher-Yates algorithm
