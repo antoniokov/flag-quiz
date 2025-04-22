@@ -179,7 +179,7 @@ export const countries: Country[] = [
   { name: 'Uganda', code: 'UG', similarTo: ['KE', 'TZ', 'MW'], aliases: [] },
   { name: 'Ukraine', code: 'UA', similarTo: ['SE', 'BG', 'RO'], aliases: ['Ukraina'] },
   { name: 'Uruguay', code: 'UY', similarTo: ['AR', 'BR', 'PY'], aliases: [] },
-  { name: 'United States', code: 'US', aliases: ['USA', 'America', 'The States'] },
+  { name: 'United States', code: 'US', similarTo: ['CA', 'GB', 'AU'], aliases: ['USA', 'America', 'The States'] },
   { name: 'Uzbekistan', code: 'UZ', similarTo: ['KZ', 'KG', 'TJ'], aliases: [] },
   { name: 'Vatican City', code: 'VA', similarTo: ['SM', 'IT', 'LI'], aliases: ['Vatican', 'Holy See'] },
   { name: 'Saint Vincent and the Grenadines', code: 'VC', similarTo: ['LC', 'KN', 'DM'], aliases: ['St. Vincent'] },
