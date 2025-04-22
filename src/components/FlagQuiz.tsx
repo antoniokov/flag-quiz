@@ -429,8 +429,8 @@ function FlagQuiz() {
           ))}
         </div>
         
-        <div className={`feedback-container ${!quizState.selectedAnswer || voiceSelectedOption === null ? 'hidden' : ''}`}>
-          {quizState.selectedAnswer && voiceSelectedOption !== null && (
+        <div className={`feedback-container ${!quizState.selectedAnswer ? 'hidden' : ''}`}>
+          {quizState.selectedAnswer && (
             <div className={`feedback ${quizState.isCorrect ? 'correct' : 'incorrect'}`}>
               {quizState.isCorrect 
                 ? `Correct! +${lastPoints} points` 
