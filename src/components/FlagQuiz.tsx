@@ -8,8 +8,9 @@ import '../styles/FlagQuiz.css';
 const TOTAL_QUESTIONS = 10;
 const DELAY_BEFORE_NEXT = 2000; // 2 seconds delay
 const MIN_SCORE = 1000; // Minimum score for a correct answer
-const MAX_SCORE = 2000; // Maximum score for a correct answer in 1 second or less
-const MAX_TIME = 5000; // Time in ms after which only minimum score is awarded (5 seconds)
+const MAX_SCORE = 2000; // Maximum score for a correct answer
+const MIN_TIME = 2000; // Time in ms after which only minimum score is awarded (2 seconds)
+const MAX_TIME = 10000; // Time in ms after which only minimum score is awarded (10 seconds)
 
 function FlagQuiz() {
   const [quizState, setQuizState] = useState<QuizState>({
@@ -231,7 +232,7 @@ function FlagQuiz() {
   };
 
   const calculateScore = (responseTimeMs: number): number => {
-    if (responseTimeMs <= 1000) {
+    if (responseTimeMs <= MIN_TIME) {
       return MAX_SCORE; // Full points for 1 second or less
     }
     
@@ -240,7 +241,7 @@ function FlagQuiz() {
     }
     
     // Linear interpolation between MIN_SCORE and MAX_SCORE based on time
-    const timeRatio = 1 - ((responseTimeMs - 1000) / (MAX_TIME - 1000));
+    const timeRatio = 1 - ((responseTimeMs - MIN_TIME) / (MAX_TIME - MIN_TIME));
     return Math.round(MIN_SCORE + timeRatio * (MAX_SCORE - MIN_SCORE));
   };
 
