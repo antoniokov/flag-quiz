@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { calculateScore } from '../../utils/scoreUtils';
 import { MIN_SCORE, MAX_SCORE, MIN_TIME, MAX_TIME } from '../../constants';
 

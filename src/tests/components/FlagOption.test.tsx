@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FlagOption from '../../components/FlagOption';
 
 // Mock for image loading
 class MockImage {
   onload: () => void = () => {};
-  set src(value: string) {
+  set src(_: string) {
     setTimeout(() => this.onload(), 100);
   }
 }

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { shuffleArray, generateQuestion, generateQuiz } from '../../utils/quizUtils';
 import { countries } from '../../data/countries';
-import { QuizQuestion } from '../../types';
 
 // Mock the global Math.random
 const mockMathRandom = vi.spyOn(Math, 'random');

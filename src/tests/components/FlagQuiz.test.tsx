@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FlagQuiz from '../../components/FlagQuiz';
 import * as quizUtils from '../../utils/quizUtils';
@@ -37,7 +37,7 @@ const mockQuestions: QuizQuestion[] = [
 // Mock for image loading
 class MockImage {
   onload: () => void = () => {};
-  set src(value: string) {
+  set src(_: string) {
     setTimeout(() => this.onload(), 100);
   }
 }
