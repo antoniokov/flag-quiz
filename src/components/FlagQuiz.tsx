@@ -21,6 +21,7 @@ const MIN_TIME = 2000; // Time in ms after which only minimum score is awarded (
 const MAX_TIME = 10000; // Time in ms after which only minimum score is awarded (10 seconds)
 
 function FlagQuiz() {
+  const [showIntro, setShowIntro] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(3);
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: null,
@@ -168,7 +169,6 @@ function FlagQuiz() {
     if (!quizStateRef.current.currentQuestion || !transcript) return;
 
     const cleanTranscript = normalize(transcript);
-    console.log('CT:', cleanTranscript);
 
     // Object to store similarity scores for each option
     const similarities: { [code: string]: number } = {};
@@ -232,11 +232,16 @@ function FlagQuiz() {
     }
   };
 
-  // Set the start time when a new question is shown
+  // Start the quiz after intro
+  const handleStartQuiz = () => {
+    setShowIntro(false);
+    setCountdown(3);
+  };
+  
   // Countdown before first question
   useEffect(() => {
-    // Only run countdown if quiz is at the first question and not answered/game over/loading
-    if (!loading && quizState.questionIndex === 0 && !quizState.selectedAnswer && !quizState.gameOver) {
+    // Only run countdown if intro is done, quiz is at the first question and not answered/game over/loading
+    if (!showIntro && !loading && quizState.questionIndex === 0 && !quizState.selectedAnswer && !quizState.gameOver) {
       setCountdown(3);
       let interval: ReturnType<typeof setInterval>;
       interval = setInterval(() => {
@@ -250,7 +255,7 @@ function FlagQuiz() {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [loading, quizState.questionIndex, quizState.selectedAnswer, quizState.gameOver]);
+  }, [showIntro, loading, quizState.questionIndex, quizState.selectedAnswer, quizState.gameOver]);
 
   useEffect(() => {
     // Only allow question to start if not loading, not answered, not game over, and either not first question or countdown is done
@@ -351,7 +356,7 @@ function FlagQuiz() {
       isCorrect: null,
       gameOver: false,
     });
-    setCountdown(3); // Reset countdown on quiz restart
+    setShowIntro(true); // Show the intro screen first
     setLastPoints(0);
     setVoiceText('');
     setVoiceSelectedOption(null);
@@ -426,6 +431,64 @@ function FlagQuiz() {
 
   if (loading) {
     return <div className="loading">Loading...</div>;
+  }
+
+  // Show intro screen
+  if (showIntro) {
+    return (
+      <div className="intro-screen" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '70vh',
+        textAlign: 'center',
+        padding: '2rem',
+      }}>
+        <h1 style={{
+          fontSize: '3rem',
+          fontWeight: 700,
+          color: '#2563eb',
+          marginBottom: '2rem',
+        }}>
+          Flag Quiz
+        </h1>
+        <p style={{
+          fontSize: '1.2rem',
+          marginBottom: '2.5rem',
+          maxWidth: '600px',
+          lineHeight: 1.6,
+        }}>
+          Test your knowledge of flags from around the world! Identify each flag correctly to earn points. 
+          The faster you answer, the more points you'll get.
+        </p>
+        <button 
+          onClick={handleStartQuiz}
+          style={{
+            background: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '0.5rem',
+            padding: '1rem 3rem',
+            fontSize: '1.5rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 4px 6px rgba(37, 99, 235, 0.25)',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 10px rgba(37, 99, 235, 0.3)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 6px rgba(37, 99, 235, 0.25)';
+          }}
+        >
+          Start Quiz
+        </button>
+      </div>
+    );
   }
 
   // Show countdown before first question
