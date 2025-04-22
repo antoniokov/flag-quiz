@@ -5,6 +5,14 @@ import FlagOption from './FlagOption';
 import QuizResult from './QuizResult';
 import '../styles/FlagQuiz.css';
 
+// Add TypeScript interfaces for the Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
 const TOTAL_QUESTIONS = 10;
 const DELAY_BEFORE_NEXT = 2000; // 2 seconds delay
 const MIN_SCORE = 1000; // Minimum score for a correct answer
@@ -13,6 +21,7 @@ const MIN_TIME = 2000; // Time in ms after which only minimum score is awarded (
 const MAX_TIME = 10000; // Time in ms after which only minimum score is awarded (10 seconds)
 
 function FlagQuiz() {
+  const [countdown, setCountdown] = useState<number>(3);
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: null,
     score: 0,
@@ -31,7 +40,7 @@ function FlagQuiz() {
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceSelectedOption, setVoiceSelectedOption] = useState<string | null>(null);
   const [showAvailableOptions, setShowAvailableOptions] = useState<boolean>(false);
-  const [voiceMode, setVoiceMode] = useState<boolean>(false);
+  const [voiceMode, setVoiceMode] = useState<boolean>(true);
   
   // Ref to store the question start time
   const questionStartTime = useRef<number>(0);
@@ -51,6 +60,7 @@ function FlagQuiz() {
     if (!('webkitSpeechRecognition' in window) && 
         !('SpeechRecognition' in window)) {
       setVoiceSupported(false);
+      setVoiceMode(false); // Disable voice mode if not supported
       return;
     }
     
@@ -58,6 +68,8 @@ function FlagQuiz() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     recognitionRef.current.continuous = false;
+    
+    // Voice mode is enabled by default, so we'll start listening once the quiz is ready
     recognitionRef.current.interimResults = false;
     recognitionRef.current.lang = 'en-US';
     
@@ -124,14 +136,34 @@ function FlagQuiz() {
   };
 
   // Set the start time when a new question is shown
+  // Countdown before first question
   useEffect(() => {
-    if (!loading && !quizState.selectedAnswer && !quizState.gameOver) {
+    // Only run countdown if quiz is at the first question and not answered/game over/loading
+    if (!loading && quizState.questionIndex === 0 && !quizState.selectedAnswer && !quizState.gameOver) {
+      setCountdown(3);
+      let interval: ReturnType<typeof setInterval>;
+      interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [loading, quizState.questionIndex, quizState.selectedAnswer, quizState.gameOver]);
+
+  useEffect(() => {
+    // Only allow question to start if not loading, not answered, not game over, and either not first question or countdown is done
+    if (!loading && !quizState.selectedAnswer && !quizState.gameOver && (quizState.questionIndex !== 0 || countdown === 0)) {
       questionStartTime.current = Date.now();
       setVoiceText('');
       setVoiceSelectedOption(null);
       setShowAvailableOptions(false);
     }
-  }, [quizState.questionIndex, loading, quizState.selectedAnswer, quizState.gameOver]);
+  }, [quizState.questionIndex, loading, quizState.selectedAnswer, quizState.gameOver, countdown]);
 
   // Auto-advance to next question after delay
   useEffect(() => {
@@ -211,9 +243,7 @@ function FlagQuiz() {
   };
 
   const startQuiz = () => {
-    setLoading(true);
     const newQuestions = generateQuiz(TOTAL_QUESTIONS);
-    
     setQuestions(newQuestions);
     setQuizState({
       currentQuestion: newQuestions[0],
@@ -224,6 +254,7 @@ function FlagQuiz() {
       isCorrect: null,
       gameOver: false,
     });
+    setCountdown(3); // Reset countdown on quiz restart
     setLastPoints(0);
     setVoiceText('');
     setVoiceSelectedOption(null);
@@ -299,7 +330,26 @@ function FlagQuiz() {
   if (loading) {
     return <div className="loading">Loading...</div>;
   }
-  
+
+  // Show countdown before first question
+  if (quizState.questionIndex === 0 && countdown > 0 && !quizState.selectedAnswer && !quizState.gameOver) {
+    return (
+      <div className="countdown" style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '60vh',
+        fontSize: '3rem',
+        fontWeight: 700,
+        color: '#2563eb',
+        letterSpacing: '0.1em',
+      }}>
+        Starting in {countdown}
+      </div>
+    );
+  }
+
   if (quizState.gameOver) {
     return (
       <QuizResult 
@@ -434,14 +484,6 @@ function FlagQuiz() {
       )}
     </div>
   );
-}
-
-// Add TypeScript interfaces for the Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
 }
 
 export default FlagQuiz; 
