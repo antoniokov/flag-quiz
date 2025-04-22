@@ -30,6 +30,7 @@ function FlagQuiz() {
   const [voiceText, setVoiceText] = useState<string>('');
   const [voiceSelectedOption, setVoiceSelectedOption] = useState<string | null>(null);
   const [showAvailableOptions, setShowAvailableOptions] = useState<boolean>(false);
+  const [voiceMode, setVoiceMode] = useState<boolean>(false);
   
   // Ref to store the question start time
   const questionStartTime = useRef<number>(0);
@@ -149,7 +150,6 @@ function FlagQuiz() {
   // Start voice recognition
   const startVoiceRecognition = () => {
     if (!voiceSupported || isListening || quizState.selectedAnswer) return;
-    
     try {
       setVoiceText('');
       setVoiceSelectedOption(null);
@@ -164,7 +164,6 @@ function FlagQuiz() {
   // Stop voice recognition
   const stopVoiceRecognition = () => {
     if (!isListening) return;
-    
     try {
       recognitionRef.current.stop();
       setIsListening(false);
@@ -172,6 +171,37 @@ function FlagQuiz() {
       console.error('Speech recognition error on stop:', error);
     }
   };
+
+  // Toggle voice mode for the entire quiz
+  const toggleVoiceMode = () => {
+    setVoiceMode((prev) => {
+      const newMode = !prev;
+      if (newMode) {
+        startVoiceRecognition();
+      } else {
+        stopVoiceRecognition();
+      }
+      return newMode;
+    });
+  };
+
+  // Automatically start listening on new questions if voiceMode is enabled
+  useEffect(() => {
+    if (
+      voiceMode &&
+      !quizState.gameOver &&
+      !loading &&
+      !quizState.selectedAnswer &&
+      voiceSupported
+    ) {
+      startVoiceRecognition();
+    }
+    // Stop listening if quiz is over or voiceMode is off
+    if ((!voiceMode || quizState.gameOver) && isListening) {
+      stopVoiceRecognition();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quizState.questionIndex, voiceMode, quizState.gameOver, loading]);
 
   // Directly select a country by clicking on the speech options overlay
   const selectCountryFromOverlay = (countryCode: string) => {
@@ -284,13 +314,48 @@ function FlagQuiz() {
 
   return (
     <div className="flag-quiz">
-      <div className="quiz-header">
-        <div className="quiz-progress">
+      <div className="quiz-header" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0.5rem 1rem',
+        borderBottom: '1px solid #eee',
+        marginBottom: '1.5rem',
+        gap: '1.5rem',
+      }}>
+        <div className="quiz-progress" style={{ fontWeight: 500 }}>
           Question {quizState.questionIndex + 1} of {quizState.totalQuestions}
         </div>
-        <div className="quiz-score">
+        <div className="quiz-score" style={{ fontWeight: 500 }}>
           Score: {quizState.score}
         </div>
+        <button
+          className={`voice-mode-icon-button${voiceMode ? ' enabled' : ' disabled'}`}
+          onClick={toggleVoiceMode}
+          disabled={quizState.gameOver}
+          aria-label={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
+          title={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
+          style={{
+            background: voiceMode ? '#2563eb' : '#f3f4f6',
+            border: voiceMode ? '2px solid #2563eb' : '2px solid #ccc',
+            color: voiceMode ? '#fff' : '#888',
+            borderRadius: '50%',
+            width: '2.8rem',
+            height: '2.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.5rem',
+            boxShadow: voiceMode ? '0 0 0 2px #bcd6fa' : 'none',
+            cursor: quizState.gameOver ? 'not-allowed' : 'pointer',
+            transition: 'all 0.2s',
+            outline: 'none',
+          }}
+        >
+          <span aria-hidden="true" style={{ pointerEvents: 'none', filter: voiceMode ? 'none' : 'grayscale(0.8)' }}>
+            🎤
+          </span>
+        </button>
       </div>
       
       <div className="quiz-content">
@@ -305,22 +370,10 @@ function FlagQuiz() {
           </div>
         </div>
         
-        {voiceSupported && (
-          <div className="voice-controls">
-            <button 
-              className={`voice-button ${isListening ? 'listening' : ''}`}
-              onClick={isListening ? stopVoiceRecognition : startVoiceRecognition}
-              disabled={!!quizState.selectedAnswer}
-            >
-              {isListening ? 'Listening...' : 'Answer by Voice'}
-              <span className="mic-icon">{isListening ? '🎤' : '🎙️'}</span>
-            </button>
-            {voiceSelectedOption === null && voiceText && !quizState.selectedAnswer && (
-              <div className="voice-text">
-                You said: "{voiceText}"
-                <div className="voice-no-match">No matching country found</div>
-              </div>
-            )}
+        {voiceSupported && voiceSelectedOption === null && voiceText && !quizState.selectedAnswer && (
+          <div className="voice-text">
+            You said: "{voiceText}"
+            <div className="voice-no-match">No matching country found</div>
           </div>
         )}
         
