@@ -35,6 +35,11 @@ function FlagQuiz() {
   const questionStartTime = useRef<number>(0);
   // Reference for the SpeechRecognition API
   const recognitionRef = useRef<any>(null);
+  // Ref to always access the latest quizState in event handlers
+  const quizStateRef = useRef(quizState);
+  useEffect(() => {
+    quizStateRef.current = quizState;
+  }, [quizState]);
 
   // Initialize quiz
   useEffect(() => {
@@ -58,14 +63,15 @@ function FlagQuiz() {
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript.trim();
       setVoiceText(transcript);
-      
-      // Check if the spoken answer matches any of the country options
-      if (quizState.currentQuestion) {
+ 
+      // Use the latest quizState via ref to avoid stale closure
+      if (quizStateRef.current.currentQuestion) {
         findAndSelectMatchingOption(transcript);
       }
       
       setIsListening(false);
     };
+
     
     // Handle errors
     recognitionRef.current.onerror = (event: any) => {
@@ -87,39 +93,29 @@ function FlagQuiz() {
   }, []);
   
   // Simple direct matching function
+  const normalize = (str: string) => str.toLowerCase().trim().replace(/["']/g, '');
   const findAndSelectMatchingOption = (transcript: string) => {
-    if (!quizState.currentQuestion || !transcript) return;
-    
-    // Clean transcript - trim whitespace, convert to lowercase, and remove quotes
-    const cleanTranscript = transcript.toLowerCase().trim().replace(/["']/g, '');
-    
-    // Find a direct match
+    console.log('Transcript:', transcript);
+    if (!quizStateRef.current.currentQuestion || !transcript) return;
+
+    const cleanTranscript = normalize(transcript);
+    console.log('CT:', cleanTranscript);
+
     let matchedOption = null;
-    
-    for (const option of quizState.currentQuestion.options) {
-      // Clean option name
-      const optionName = option.name.toLowerCase().trim();
-      
-      // Try exact match
-      if (cleanTranscript === optionName) {
+    for (const option of quizStateRef.current.currentQuestion.options) {
+      console.log('Comparing:', JSON.stringify(cleanTranscript), JSON.stringify(normalize(option.name)));
+      if (cleanTranscript === normalize(option.name)) {
         matchedOption = option;
         break;
       }
     }
-    
-    // If we found an exact match, use it
+
     if (matchedOption) {
       const countryCode = matchedOption.code;
       setVoiceSelectedOption(countryCode);
-      
-      // Visually show the match for a moment, then check the answer
-      setTimeout(() => {
-        checkAnswer(countryCode);
-      }, 700);
+      checkAnswer(countryCode); // Immediately select the answer on match
     } else {
       setVoiceSelectedOption(null);
-      
-      // Show available options in UI
       setShowAvailableOptions(true);
     }
   };
