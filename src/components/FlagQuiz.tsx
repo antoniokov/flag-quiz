@@ -455,13 +455,57 @@ function FlagQuiz() {
         </h1>
         <p style={{
           fontSize: '1.2rem',
-          marginBottom: '2.5rem',
+          marginBottom: '1.5rem',
           maxWidth: '600px',
           lineHeight: 1.6,
         }}>
           Test your knowledge of flags from around the world! Identify each flag correctly to earn points. 
           The faster you answer, the more points you'll get.
         </p>
+        
+        {voiceSupported && (
+          <div className="voice-mode-option" style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '2rem',
+            gap: '1rem',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+          }}>
+            <button
+              onClick={toggleVoiceMode}
+              style={{
+                background: voiceMode ? '#2563eb' : '#f3f4f6',
+                border: voiceMode ? '2px solid #2563eb' : '2px solid #ccc',
+                color: voiceMode ? '#fff' : '#888',
+                borderRadius: '50%',
+                width: '2.5rem',
+                height: '2.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.3rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                outline: 'none',
+                boxShadow: voiceMode ? '0 0 0 2px #bcd6fa' : 'none',
+              }}
+              aria-label={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
+              title={voiceMode ? 'Disable voice mode' : 'Enable voice mode'}
+            >
+              <span aria-hidden="true" style={{ pointerEvents: 'none', filter: voiceMode ? 'none' : 'grayscale(0.8)' }}>
+                🎤
+              </span>
+            </button>
+            <span style={{ fontWeight: 500 }}>
+              Voice Mode: {voiceMode ? 'On' : 'Off'}
+            </span>
+          </div>
+        )}
+        
         <button 
           onClick={handleStartQuiz}
           style={{
