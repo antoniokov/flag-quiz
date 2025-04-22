@@ -78,6 +78,7 @@ flag-quiz/
 │   ├── constants/  # Application constants
 │   ├── data/       # Flag and country data
 │   ├── styles/     # CSS files
+│   ├── tests/      # Test suite
 │   ├── types/      # TypeScript interfaces
 │   ├── utils/      # Utility functions
 │   ├── App.tsx     # Main App component
@@ -85,6 +86,22 @@ flag-quiz/
 ├── package.json
 └── vite.config.ts
 ```
+
+### Testing
+The project includes a comprehensive test suite to ensure stability and prevent regressions:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Generate coverage report
+npm run test:coverage
+```
+
+Tests are organized by component and utility function. See `src/tests/README.md` for detailed documentation on the testing approach.
 
 ### Adding New Flags/Countries
 To add new countries or update existing ones, modify the `src/data/countries.ts` file:
