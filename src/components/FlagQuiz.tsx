@@ -284,12 +284,34 @@ function FlagQuiz() {
 
   // Start voice recognition
   const startVoiceRecognition = () => {
-    if (!voiceSupported || isListening || quizState.selectedAnswer) return;
+    if (!voiceSupported || quizState.selectedAnswer) return;
+    
     try {
-      setVoiceText('');
-      setVoiceSelectedOption(null);
-      recognitionRef.current.start();
-      setIsListening(true);
+      // First ensure recognition is stopped before starting
+      if (isListening) {
+        try {
+          recognitionRef.current.stop();
+        } catch (stopError) {
+          console.error('Error stopping speech recognition:', stopError);
+        }
+        // Small delay to ensure recognition has properly stopped
+        setTimeout(() => {
+          try {
+            setVoiceText('');
+            setVoiceSelectedOption(null);
+            recognitionRef.current.start();
+            setIsListening(true);
+          } catch (startError) {
+            console.error('Speech recognition error on delayed start:', startError);
+            setIsListening(false);
+          }
+        }, 100);
+      } else {
+        setVoiceText('');
+        setVoiceSelectedOption(null);
+        recognitionRef.current.start();
+        setIsListening(true);
+      }
     } catch (error) {
       console.error('Speech recognition error on start:', error);
       setIsListening(false);
@@ -311,11 +333,14 @@ function FlagQuiz() {
   const toggleVoiceMode = () => {
     setVoiceMode((prev) => {
       const newMode = !prev;
+      
       if (newMode) {
-        startVoiceRecognition();
+        // We'll start recognition in the useEffect that depends on voiceMode
+        // No need to call startVoiceRecognition() directly here
       } else {
         stopVoiceRecognition();
       }
+      
       return newMode;
     });
   };
@@ -327,9 +352,13 @@ function FlagQuiz() {
       !quizState.gameOver &&
       !loading &&
       !quizState.selectedAnswer &&
-      voiceSupported
+      voiceSupported &&
+      !isListening  // Only start if not already listening
     ) {
-      startVoiceRecognition();
+      // Add a small delay to ensure any previous recognition has fully stopped
+      setTimeout(() => {
+        startVoiceRecognition();
+      }, 100);
     }
     // Stop listening if quiz is over or voiceMode is off
     if ((!voiceMode || quizState.gameOver) && isListening) {
