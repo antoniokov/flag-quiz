@@ -112,8 +112,13 @@ function FlagQuiz() {
 
     if (matchedOption) {
       const countryCode = matchedOption.code;
+      // Simulate the same logic as if the user clicked the option
       setVoiceSelectedOption(countryCode);
-      checkAnswer(countryCode); // Immediately select the answer on match
+      setQuizState(prev => ({
+        ...prev,
+        selectedAnswer: countryCode
+      }));
+      checkAnswer(countryCode); // Check the answer just like a click
     } else {
       setVoiceSelectedOption(null);
       setShowAvailableOptions(true);
