@@ -10,18 +10,10 @@ interface VoiceFeedbackProps {
   matchedAlias: string | null;
 }
 
-function VoiceFeedback({ voiceSupported, voiceSelectedOption, voiceText, matchedCountry, isCorrect, selectedAnswer, matchedAlias }: VoiceFeedbackProps) {
-  if (!voiceSupported) return null;
-  return (
-    <>
-      {voiceSelectedOption === null && voiceText && !selectedAnswer && (
-        <div className="voice-text">
-          You said: "{voiceText}"
-          <div className="voice-no-match">No matching country found</div>
-        </div>
-      )}
-    </>
-  );
+// We keep the props interface for type checking but don't use the parameters
+function VoiceFeedback(_props: VoiceFeedbackProps) {
+  // Return null in all cases - don't show any voice feedback
+  return null;
 }
 
 export default VoiceFeedback; 

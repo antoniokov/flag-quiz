@@ -49,6 +49,8 @@ function FlagQuiz() {
   const questionStartTime = useRef<number>(0);
   // Reference for the SpeechRecognition API
   const recognitionRef = useRef<any>(null);
+  // Ref to track if recognition is actually running (regardless of React state)
+  const recognitionActive = useRef<boolean>(false);
   // Ref to always access the latest quizState in event handlers
   const quizStateRef = useRef(quizState);
   useEffect(() => {
@@ -79,7 +81,8 @@ function FlagQuiz() {
     // Handle recognition results
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript.trim();
-      setVoiceText(transcript);
+      // Don't update voiceText to avoid displaying any feedback
+      // setVoiceText(transcript);
  
       // Use the latest quizState via ref to avoid stale closure
       if (quizStateRef.current.currentQuestion) {
@@ -89,9 +92,26 @@ function FlagQuiz() {
           .replace(/^(the|this is|that's|i think it's|it's|it is|maybe|probably|possibly|i guess|sounds like|looks like)/i, '')
           .trim();
           
-        findAndSelectMatchingOption(cleanedTranscript);
+        // Try to find a matching option
+        const matchFound = findAndSelectMatchingOption(cleanedTranscript);
+        
+        // If no match is found and we're still in the current question,
+        // restart listening immediately
+        if (!matchFound && 
+            !quizStateRef.current.selectedAnswer && 
+            !quizStateRef.current.gameOver) {
+          // Short timeout to allow the recognition service to reset
+          setTimeout(() => {
+            if (!quizStateRef.current.selectedAnswer && 
+                !quizStateRef.current.gameOver && 
+                voiceMode) {
+              startVoiceRecognition();
+            }
+          }, 300); // Increased timeout to ensure recognition has time to stop
+        }
       }
       
+      recognitionActive.current = false;
       setIsListening(false);
     };
 
@@ -99,39 +119,70 @@ function FlagQuiz() {
     // Handle errors
     recognitionRef.current.onerror = (event: any) => {
       console.error('Speech recognition error', event.error);
+      recognitionActive.current = false;
       setIsListening(false);
+      
+      // Restart listening after error if still in active question
+      // Don't restart immediately on InvalidState errors
+      if (!quizStateRef.current.selectedAnswer && 
+          !quizStateRef.current.gameOver && 
+          voiceMode &&
+          event.error !== 'not-allowed' && // Don't retry if user denied permission
+          event.error !== 'aborted') {     // Don't retry if deliberately aborted
+        setTimeout(() => startVoiceRecognition(), 500); // Increased timeout
+      }
     };
     
     // Handle end of recognition
     recognitionRef.current.onend = () => {
+      recognitionActive.current = false;
       setIsListening(false);
+      
+      // Restart listening if no match was found and we're still in active question
+      if (!quizStateRef.current.selectedAnswer && 
+          !quizStateRef.current.gameOver && 
+          voiceMode) {
+        setTimeout(() => {
+          if (!quizStateRef.current.selectedAnswer && voiceMode) {
+            startVoiceRecognition();
+          }
+        }, 500); // Increased timeout to ensure clean restart
+      }
     };
     
     return () => {
       // Clean up
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping recognition during cleanup:', error);
+        }
+        recognitionActive.current = false;
       }
     };
   }, []);
   
   const findAndSelectMatchingOption = (transcript: string) => {
-    if (!quizStateRef.current.currentQuestion || !transcript) return;
+    if (!quizStateRef.current.currentQuestion || !transcript) return false;
 
     const bestMatch = findBestMatch(transcript, quizStateRef.current.currentQuestion.options);
 
     if (bestMatch) {
       const countryCode = bestMatch.code;
-      const matchedOption = quizStateRef.current.currentQuestion.options.find(option => option.code === countryCode);
-      setMatchedCountry(matchedOption?.name || null);
-      setMatchedAlias(bestMatch.matchedAlias);
-      setVoiceSelectedOption(countryCode);
+      // Don't set these state variables to avoid any UI feedback
+      // setMatchedCountry(matchedOption?.name || null);
+      // setMatchedAlias(bestMatch.matchedAlias);
+      // setVoiceSelectedOption(countryCode);
       checkAnswer(countryCode);
+      return true;
     } else {
-      setVoiceSelectedOption(null);
-      setMatchedCountry(null);
-      setMatchedAlias(null);
-      setShowAvailableOptions(true);
+      // Don't set these state variables to avoid any UI feedback
+      // setVoiceSelectedOption(null);
+      // setMatchedCountry(null);
+      // setMatchedAlias(null);
+      // Remove overlay display - just keep listening
+      return false;
     }
   };
 
@@ -164,8 +215,9 @@ function FlagQuiz() {
     // Only allow question to start if not loading, not answered, not game over, and either not first question or countdown is done
     if (!loading && !quizState.selectedAnswer && !quizState.gameOver && (quizState.questionIndex !== 0 || countdown === 0)) {
       questionStartTime.current = Date.now();
-      setVoiceText('');
-      setVoiceSelectedOption(null);
+      // Don't reset voice text state to avoid UI updates
+      // setVoiceText('');
+      // setVoiceSelectedOption(null);
       setShowAvailableOptions(false);
     }
   }, [quizState.questionIndex, loading, quizState.selectedAnswer, quizState.gameOver, countdown]);
@@ -187,48 +239,55 @@ function FlagQuiz() {
 
   // Start voice recognition
   const startVoiceRecognition = () => {
-    if (!voiceSupported || quizState.selectedAnswer) return;
+    // Don't attempt to start if:
+    // 1. Voice is not supported
+    // 2. We've already answered
+    // 3. Game is over
+    // 4. Recognition is already active (using the ref, not just React state)
+    if (!voiceSupported || 
+        quizState.selectedAnswer || 
+        quizState.gameOver || 
+        recognitionActive.current) {
+      return;
+    }
     
     try {
-      // First ensure recognition is stopped before starting
-      if (isListening) {
-        try {
-          recognitionRef.current.stop();
-        } catch (stopError) {
-          console.error('Error stopping speech recognition:', stopError);
-        }
-        // Small delay to ensure recognition has properly stopped
-        setTimeout(() => {
-          try {
-            setVoiceText('');
-            setVoiceSelectedOption(null);
-            recognitionRef.current.start();
-            setIsListening(true);
-          } catch (startError) {
-            console.error('Speech recognition error on delayed start:', startError);
-            setIsListening(false);
-          }
-        }, 100);
-      } else {
-        setVoiceText('');
-        setVoiceSelectedOption(null);
+      // Use our ref to determine if recognition is truly active
+      if (!recognitionActive.current) {
         recognitionRef.current.start();
+        recognitionActive.current = true;
         setIsListening(true);
       }
     } catch (error) {
       console.error('Speech recognition error on start:', error);
+      recognitionActive.current = false;
       setIsListening(false);
+      
+      // Try to restart after an error - but only for errors that aren't due to already running
+      if (!String(error).includes('already started')) {
+        setTimeout(() => {
+          if (!quizState.selectedAnswer && !quizState.gameOver && voiceMode) {
+            startVoiceRecognition();
+          }
+        }, 700); // Longer timeout for error recovery
+      }
     }
   };
 
   // Stop voice recognition
   const stopVoiceRecognition = () => {
-    if (!isListening) return;
+    // Only attempt to stop if we believe it's running
+    if (!recognitionActive.current) return;
+    
     try {
       recognitionRef.current.stop();
+      recognitionActive.current = false;
       setIsListening(false);
     } catch (error) {
       console.error('Speech recognition error on stop:', error);
+      // Reset our tracking state even if there was an error
+      recognitionActive.current = false;
+      setIsListening(false);
     }
   };
 
@@ -255,8 +314,7 @@ function FlagQuiz() {
       !quizState.gameOver &&
       !loading &&
       !quizState.selectedAnswer &&
-      voiceSupported &&
-      !isListening  // Only start if not already listening
+      voiceSupported
     ) {
       // Add a small delay to ensure any previous recognition has fully stopped
       setTimeout(() => {
@@ -345,6 +403,9 @@ function FlagQuiz() {
       selectedAnswer: null,
       isCorrect: null,
     });
+    
+    // Reset overlay when moving to next question
+    setShowAvailableOptions(false);
   };
 
   if (loading) {
@@ -441,35 +502,7 @@ function FlagQuiz() {
         </div>
       </div>
       
-      {/* Speech options overlay - shows when voice recognition fails to match */}
-      {showAvailableOptions && (
-        <div className="speech-options-overlay">
-          <div className="speech-options-content">
-            <div className="speech-options-header">
-              Did you mean one of these countries?
-            </div>
-            <div className="speech-options-list">
-              {currentQuestion.options.map(country => (
-                <button 
-                  key={country.code} 
-                  className="speech-option-button"
-                  onClick={() => selectCountryFromOverlay(country.code)}
-                >
-                  {country.name}
-                </button>
-              ))}
-            </div>
-            <div className="speech-options-footer">
-              <button 
-                className="speech-options-close"
-                onClick={() => setShowAvailableOptions(false)}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Remove overlay - we want to keep listening without showing any UI */}
     </div>
   );
 }
