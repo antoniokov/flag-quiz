@@ -126,6 +126,15 @@
   font-style: normal;
 }
 
+.voice-match {
+  margin-top: 5px;
+  color: #4285f4;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-style: normal;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);

@@ -2,6 +2,7 @@ export interface Country {
   name: string;
   code: string;
   similarTo?: string[]; // Array of country codes that have similar flags
+  aliases?: string[]; // Array of alternative names for voice recognition
 }
 
 export interface QuizQuestion {

@@ -41,6 +41,8 @@ function FlagQuiz() {
   const [voiceSelectedOption, setVoiceSelectedOption] = useState<string | null>(null);
   const [showAvailableOptions, setShowAvailableOptions] = useState<boolean>(false);
   const [voiceMode, setVoiceMode] = useState<boolean>(true);
+  const [matchedCountry, setMatchedCountry] = useState<string | null>(null);
+  const [matchedAlias, setMatchedAlias] = useState<string | null>(null);
   
   // Ref to store the question start time
   const questionStartTime = useRef<number>(0);
@@ -80,7 +82,13 @@ function FlagQuiz() {
  
       // Use the latest quizState via ref to avoid stale closure
       if (quizStateRef.current.currentQuestion) {
-        findAndSelectMatchingOption(transcript);
+        // Optimize for country name recognition
+        // Clean up the transcript - remove common prefixes that might appear in voice recognition
+        let cleanedTranscript = transcript
+          .replace(/^(the|this is|that's|i think it's|it's|it is|maybe|probably|possibly|i guess|sounds like|looks like)/i, '')
+          .trim();
+          
+        findAndSelectMatchingOption(cleanedTranscript);
       }
       
       setIsListening(false);
@@ -108,6 +116,53 @@ function FlagQuiz() {
   
   // Simple direct matching function
   const normalize = (str: string) => str.toLowerCase().trim().replace(/["']/g, '');
+
+  // Calculate string similarity using Levenshtein distance
+  const calculateSimilarity = (str1: string, str2: string): number => {
+    const a = normalize(str1);
+    const b = normalize(str2);
+    
+    // Perfect match
+    if (a === b) return 1;
+    
+    // Simple check for one being a substring of the other
+    if (a.includes(b) || b.includes(a)) {
+      const ratio = Math.min(a.length, b.length) / Math.max(a.length, b.length);
+      // Return a high score if one is a near-complete substring of the other
+      return ratio > 0.7 ? 0.9 : 0.7 * ratio;
+    }
+    
+    // Levenshtein distance calculation
+    const matrix: number[][] = [];
+    
+    // Initialize matrix
+    for (let i = 0; i <= a.length; i++) {
+      matrix[i] = [i];
+    }
+    for (let j = 0; j <= b.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    // Fill matrix
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,      // deletion
+          matrix[i][j - 1] + 1,      // insertion
+          matrix[i - 1][j - 1] + cost // substitution
+        );
+      }
+    }
+    
+    // Calculate similarity score between 0 and 1
+    const distance = matrix[a.length][b.length];
+    const maxLength = Math.max(a.length, b.length);
+    
+    // Return similarity score (1 - normalized distance)
+    return 1 - distance / maxLength;
+  };
+  
   const findAndSelectMatchingOption = (transcript: string) => {
     console.log('Transcript:', transcript);
     if (!quizStateRef.current.currentQuestion || !transcript) return;
@@ -115,22 +170,64 @@ function FlagQuiz() {
     const cleanTranscript = normalize(transcript);
     console.log('CT:', cleanTranscript);
 
-    let matchedOption = null;
+    // Object to store similarity scores for each option
+    const similarities: { [code: string]: number } = {};
+    let bestMatch: { code: string, score: number, matchedAlias: string | null } = { 
+      code: '', 
+      score: 0,
+      matchedAlias: null
+    };
+    
+    // Calculate similarity score for each option
     for (const option of quizStateRef.current.currentQuestion.options) {
-      console.log('Comparing:', JSON.stringify(cleanTranscript), JSON.stringify(normalize(option.name)));
-      if (cleanTranscript === normalize(option.name)) {
-        matchedOption = option;
-        break;
+      // First check against the country name
+      let similarity = calculateSimilarity(cleanTranscript, option.name);
+      let matchedAlias = null;
+      
+      // Then check against each alias if they exist
+      if (option.aliases && option.aliases.length > 0) {
+        for (const alias of option.aliases) {
+          const aliasSimilarity = calculateSimilarity(cleanTranscript, alias);
+          // Use the highest similarity score found (either from name or any alias)
+          if (aliasSimilarity > similarity) {
+            similarity = aliasSimilarity;
+            matchedAlias = alias;
+          }
+        }
+      }
+      
+      similarities[option.code] = similarity;
+      
+      // Track the best match
+      if (similarity > bestMatch.score) {
+        bestMatch = { 
+          code: option.code, 
+          score: similarity,
+          matchedAlias: matchedAlias
+        };
       }
     }
-
-    if (matchedOption) {
-      const countryCode = matchedOption.code;
+    
+    console.log('Similarity scores:', similarities);
+    
+    // Consider it a match if similarity is above threshold
+    const SIMILARITY_THRESHOLD = 0.6;
+    
+    if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+      const countryCode = bestMatch.code;
+      const matchedOption = quizStateRef.current.currentQuestion.options.find(
+        option => option.code === countryCode
+      );
+      // Store the matched country name for display
+      setMatchedCountry(matchedOption?.name || null);
+      setMatchedAlias(bestMatch.matchedAlias);
       // Simulate the same logic as if the user clicked the option
       setVoiceSelectedOption(countryCode);
       checkAnswer(countryCode); // Let checkAnswer handle all quizState updates
     } else {
       setVoiceSelectedOption(null);
+      setMatchedCountry(null);
+      setMatchedAlias(null);
       setShowAvailableOptions(true);
     }
   };
@@ -425,6 +522,16 @@ function FlagQuiz() {
           <div className="voice-text">
             You said: "{voiceText}"
             <div className="voice-no-match">No matching country found</div>
+          </div>
+        )}
+        
+        {voiceSupported && voiceSelectedOption !== null && matchedCountry && !quizState.isCorrect && (
+          <div className="voice-text">
+            <div>You said: "{voiceText}"</div>
+            <div className="voice-match">
+              Matched to: {matchedCountry}
+              {matchedAlias && ` (recognized as "${matchedAlias}")`}
+            </div>
           </div>
         )}
         
