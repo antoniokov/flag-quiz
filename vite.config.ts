@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/flag-quiz-cursor/', // Replace with your repository name
+  base: '/flag-quiz/', // Replace with your repository name
 })

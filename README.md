@@ -13,7 +13,7 @@ Test your knowledge of world flags in this interactive quiz game! Can you identi
 - **Learning Experience**: Familiarize yourself with flags from around the world
 
 ### How to Play
-1. Visit the [Flag Quiz website](https://antoniokov.com/flag-quiz-cursor)
+1. Visit the [Flag Quiz website](https://antoniokov.com/flag-quiz)
 2. Click "Start Quiz" on the introduction screen
 3. For each question, identify the country that matches the displayed flag
 4. Click on the correct answer or use the voice recognition feature (say the country's name)
