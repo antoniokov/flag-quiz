@@ -20,16 +20,6 @@ function VoiceFeedback({ voiceSupported, voiceSelectedOption, voiceText, matched
           <div className="voice-no-match">No matching country found</div>
         </div>
       )}
-
-      {voiceSelectedOption !== null && matchedCountry && !isCorrect && (
-        <div className="voice-text">
-          <div>You said: "{voiceText}"</div>
-          <div className="voice-match">
-            Matched to: {matchedCountry}
-            {matchedAlias && ` (recognized as "${matchedAlias}")`}
-          </div>
-        </div>
-      )}
     </>
   );
 }
