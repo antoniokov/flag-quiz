@@ -114,11 +114,7 @@ function FlagQuiz() {
       const countryCode = matchedOption.code;
       // Simulate the same logic as if the user clicked the option
       setVoiceSelectedOption(countryCode);
-      setQuizState(prev => ({
-        ...prev,
-        selectedAnswer: countryCode
-      }));
-      checkAnswer(countryCode); // Check the answer just like a click
+      checkAnswer(countryCode); // Let checkAnswer handle all quizState updates
     } else {
       setVoiceSelectedOption(null);
       setShowAvailableOptions(true);
@@ -219,31 +215,33 @@ function FlagQuiz() {
   };
 
   const checkAnswer = (countryCode: string) => {
-    if (quizState.selectedAnswer || !quizState.currentQuestion) return;
-    
-    // Stop voice recognition if it's active
-    if (isListening) {
-      stopVoiceRecognition();
-    }
-    
-    const isCorrect = countryCode === quizState.currentQuestion.correctCountry.code;
-    const responseTime = Date.now() - questionStartTime.current;
-    
-    // Calculate points based on response time if answer is correct
-    let points = 0;
-    if (isCorrect) {
-      points = calculateScore(responseTime);
-      setLastPoints(points);
-    }
-    
-    // Update score if answer is correct
-    const newScore = isCorrect ? quizState.score + points : quizState.score;
-    
-    setQuizState({
-      ...quizState,
-      selectedAnswer: countryCode,
-      isCorrect,
-      score: newScore,
+    setQuizState(prev => {
+      if (prev.selectedAnswer || !prev.currentQuestion) return prev;
+
+      // Stop voice recognition if it's active
+      if (isListening) {
+        stopVoiceRecognition();
+      }
+
+      const isCorrect = countryCode === prev.currentQuestion.correctCountry.code;
+      const responseTime = Date.now() - questionStartTime.current;
+
+      // Calculate points based on response time if answer is correct
+      let points = 0;
+      if (isCorrect) {
+        points = calculateScore(responseTime);
+        setLastPoints(points);
+      }
+
+      // Update score if answer is correct
+      const newScore = isCorrect ? prev.score + points : prev.score;
+
+      return {
+        ...prev,
+        selectedAnswer: countryCode,
+        isCorrect,
+        score: newScore,
+      };
     });
   };
 
@@ -317,12 +315,10 @@ function FlagQuiz() {
               {isListening ? 'Listening...' : 'Answer by Voice'}
               <span className="mic-icon">{isListening ? '🎤' : '🎙️'}</span>
             </button>
-            {voiceText && (
+            {voiceSelectedOption === null && voiceText && !quizState.selectedAnswer && (
               <div className="voice-text">
                 You said: "{voiceText}"
-                {voiceSelectedOption === null && voiceText && !quizState.selectedAnswer && (
-                  <div className="voice-no-match">No matching country found</div>
-                )}
+                <div className="voice-no-match">No matching country found</div>
               </div>
             )}
           </div>
@@ -341,8 +337,8 @@ function FlagQuiz() {
           ))}
         </div>
         
-        <div className={`feedback-container ${!quizState.selectedAnswer ? 'hidden' : ''}`}>
-          {quizState.selectedAnswer && (
+        <div className={`feedback-container ${!quizState.selectedAnswer || voiceSelectedOption === null ? 'hidden' : ''}`}>
+          {quizState.selectedAnswer && voiceSelectedOption !== null && (
             <div className={`feedback ${quizState.isCorrect ? 'correct' : 'incorrect'}`}>
               {quizState.isCorrect 
                 ? `Correct! +${lastPoints} points` 
