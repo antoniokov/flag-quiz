@@ -8,6 +8,9 @@ import IntroScreen from './IntroScreen';
 import Countdown from './Countdown';
 import Header from './Header';
 import VoiceFeedback from './VoiceFeedback';
+import { TOTAL_QUESTIONS, DELAY_BEFORE_NEXT } from '../constants';
+import { findBestMatch } from '../utils/speechUtils';
+import { calculateScore } from '../utils/scoreUtils';
 
 // Add TypeScript interfaces for the Web Speech API
 declare global {
@@ -16,13 +19,6 @@ declare global {
     webkitSpeechRecognition: any;
   }
 }
-
-const TOTAL_QUESTIONS = 10;
-const DELAY_BEFORE_NEXT = 2000; // 2 seconds delay
-const MIN_SCORE = 1000; // Minimum score for a correct answer
-const MAX_SCORE = 2000; // Maximum score for a correct answer
-const MIN_TIME = 2000; // Time in ms after which only minimum score is awarded (2 seconds)
-const MAX_TIME = 10000; // Time in ms after which only minimum score is awarded (10 seconds)
 
 function FlagQuiz() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
@@ -119,115 +115,18 @@ function FlagQuiz() {
     };
   }, []);
   
-  // Simple direct matching function
-  const normalize = (str: string) => str.toLowerCase().trim().replace(/["']/g, '');
-
-  // Calculate string similarity using Levenshtein distance
-  const calculateSimilarity = (str1: string, str2: string): number => {
-    const a = normalize(str1);
-    const b = normalize(str2);
-    
-    // Perfect match
-    if (a === b) return 1;
-    
-    // Simple check for one being a substring of the other
-    if (a.includes(b) || b.includes(a)) {
-      const ratio = Math.min(a.length, b.length) / Math.max(a.length, b.length);
-      // Return a high score if one is a near-complete substring of the other
-      return ratio > 0.7 ? 0.9 : 0.7 * ratio;
-    }
-    
-    // Levenshtein distance calculation
-    const matrix: number[][] = [];
-    
-    // Initialize matrix
-    for (let i = 0; i <= a.length; i++) {
-      matrix[i] = [i];
-    }
-    for (let j = 0; j <= b.length; j++) {
-      matrix[0][j] = j;
-    }
-    
-    // Fill matrix
-    for (let i = 1; i <= a.length; i++) {
-      for (let j = 1; j <= b.length; j++) {
-        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j] + 1,      // deletion
-          matrix[i][j - 1] + 1,      // insertion
-          matrix[i - 1][j - 1] + cost // substitution
-        );
-      }
-    }
-    
-    // Calculate similarity score between 0 and 1
-    const distance = matrix[a.length][b.length];
-    const maxLength = Math.max(a.length, b.length);
-    
-    // Return similarity score (1 - normalized distance)
-    return 1 - distance / maxLength;
-  };
-  
   const findAndSelectMatchingOption = (transcript: string) => {
-    console.log('Transcript:', transcript);
     if (!quizStateRef.current.currentQuestion || !transcript) return;
 
-    const cleanTranscript = normalize(transcript);
+    const bestMatch = findBestMatch(transcript, quizStateRef.current.currentQuestion.options);
 
-    // Object to store similarity scores for each option
-    const similarities: { [code: string]: number } = {};
-    let bestMatch: { code: string, score: number, matchedAlias: string | null } = { 
-      code: '', 
-      score: 0,
-      matchedAlias: null
-    };
-    
-    // Calculate similarity score for each option
-    for (const option of quizStateRef.current.currentQuestion.options) {
-      // First check against the country name
-      let similarity = calculateSimilarity(cleanTranscript, option.name);
-      let matchedAlias = null;
-      
-      // Then check against each alias if they exist
-      if (option.aliases && option.aliases.length > 0) {
-        for (const alias of option.aliases) {
-          const aliasSimilarity = calculateSimilarity(cleanTranscript, alias);
-          // Use the highest similarity score found (either from name or any alias)
-          if (aliasSimilarity > similarity) {
-            similarity = aliasSimilarity;
-            matchedAlias = alias;
-          }
-        }
-      }
-      
-      similarities[option.code] = similarity;
-      
-      // Track the best match
-      if (similarity > bestMatch.score) {
-        bestMatch = { 
-          code: option.code, 
-          score: similarity,
-          matchedAlias: matchedAlias
-        };
-      }
-    }
-    
-    console.log('Similarity scores:', similarities);
-    
-    // Consider it a match if similarity is above threshold
-    const SIMILARITY_THRESHOLD = 0.6;
-    
-    if (bestMatch.score >= SIMILARITY_THRESHOLD) {
+    if (bestMatch) {
       const countryCode = bestMatch.code;
-      const matchedOption = quizStateRef.current.currentQuestion.options.find(
-        option => option.code === countryCode
-      );
-      // Store the matched country name for display
+      const matchedOption = quizStateRef.current.currentQuestion.options.find(option => option.code === countryCode);
       setMatchedCountry(matchedOption?.name || null);
       setMatchedAlias(bestMatch.matchedAlias);
-      // Simulate the same logic as if the user clicked the option
       setVoiceSelectedOption(countryCode);
-      checkAnswer(countryCode); // Let checkAnswer handle all quizState updates
+      checkAnswer(countryCode);
     } else {
       setVoiceSelectedOption(null);
       setMatchedCountry(null);
@@ -395,20 +294,6 @@ function FlagQuiz() {
     setVoiceSelectedOption(null);
     setShowAvailableOptions(false);
     setLoading(false);
-  };
-
-  const calculateScore = (responseTimeMs: number): number => {
-    if (responseTimeMs <= MIN_TIME) {
-      return MAX_SCORE; // Full points for 1 second or less
-    }
-    
-    if (responseTimeMs >= MAX_TIME) {
-      return MIN_SCORE; // Minimum points for 5 seconds or more
-    }
-    
-    // Linear interpolation between MIN_SCORE and MAX_SCORE based on time
-    const timeRatio = 1 - ((responseTimeMs - MIN_TIME) / (MAX_TIME - MIN_TIME));
-    return Math.round(MIN_SCORE + timeRatio * (MAX_SCORE - MIN_SCORE));
   };
 
   const checkAnswer = (countryCode: string) => {
