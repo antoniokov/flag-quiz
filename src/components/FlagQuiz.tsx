@@ -322,7 +322,7 @@ function FlagQuiz() {
     setQuizState({
       currentQuestion: newQuestions[0],
       score: 0,
-      totalQuestions: TOTAL_QUESTIONS,
+      totalQuestions: newQuestions.length,
       questionIndex: 0,
       selectedAnswer: null,
       isCorrect: null,

@@ -187,7 +187,9 @@ describe('FlagQuiz', () => {
     // Since there are only 2 mock questions, it should show results
     await waitFor(() => {
       expect(screen.getByText('Quiz Completed!')).toBeInTheDocument();
-      expect(screen.getByText(/points/i)).toBeInTheDocument();
+      // There may be multiple occurrences of the word "points" in the result screen (individual
+      // score, average score description, etc.). We just need to ensure at least one is rendered.
+      expect(screen.getAllByText(/points/i).length).toBeGreaterThan(0);
       expect(screen.getByRole('button', { name: /Try Again/i })).toBeInTheDocument();
     }, { timeout: 3000 });
   });
