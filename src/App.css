@@ -50,6 +50,22 @@
   --text-light: #666;
   --bg-color: #f9f9f9;
   --border-color: #e0e0e0;
+  --card-bg-color: #ffffff;
+  --button-bg-color: #f9f9f9;
+  --button-text-color: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-color: rgba(255, 255, 255, 0.87);
+    --text-light: rgba(255, 255, 255, 0.65);
+    --bg-color: #242424;
+    --border-color: #444;
+    --card-bg-color: #1a1a1a;
+    /* Keep button colors light in dark mode for contrast with option text */
+    --button-bg-color: #f9f9f9;
+    --button-text-color: #333;
+  }
 }
 
 * {
@@ -62,13 +78,20 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   color: var(--text-color);
-  background-color: #fff;
+  background-color: var(--bg-color, #fff);
 }
 
 .app-container {
-  max-width: 900px;
+  max-width: 840px;
+  width: 100%;
   margin: 0 auto;
   padding: 20px;
+  background-color: transparent;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100vh;
 }
 
 header {
@@ -94,4 +117,20 @@ button {
 
 main {
   min-height: 70vh;
+}
+
+main.main-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Light mode overrides managed by CSS variables in :root */
+
+@media (prefers-color-scheme: dark) {
+  button.flag-option {
+    color: #333; /* Force dark text on light background buttons */
+  }
 }

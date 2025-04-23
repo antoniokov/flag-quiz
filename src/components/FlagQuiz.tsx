@@ -431,7 +431,7 @@ function FlagQuiz() {
   const currentQuestion = quizState.currentQuestion!;
 
   return (
-    <div className="flag-quiz">
+    <div className="flag-quiz container-consistent">
       <Header
         questionNumber={quizState.questionIndex + 1}
         totalQuestions={quizState.totalQuestions}

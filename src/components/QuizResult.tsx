@@ -24,7 +24,7 @@ function QuizResult({ score, totalQuestions, onRestart }: QuizResultProps) {
   const averagePoints = Math.round(score / totalQuestions);
   
   return (
-    <div className="quiz-result">
+    <div className="quiz-result container-consistent">
       <h2>Quiz Completed!</h2>
       
       <div className="score-display">

@@ -4,6 +4,7 @@
   font-weight: 400;
 
   color-scheme: light dark;
+  /* Default dark mode colors - overridden by App.css variables */
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -28,6 +29,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  /* Colors will be overridden by App.css */
 }
 
 h1 {
@@ -42,7 +44,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--button-bg-color, #1a1a1a);
+  color: var(--button-text-color, inherit);
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -54,15 +57,4 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
+/* Media queries removed as theming is managed by CSS variables */

@@ -27,7 +27,7 @@ export const countries: Country[] = [
   { name: 'Bahamas', code: 'BS', similarTo: ['LC', 'BB', 'AG'], aliases: ['The Bahamas'] },
   { name: 'Bhutan', code: 'BT', similarTo: ['NP', 'IN', 'BD'], aliases: ['Druk Yul'] },
   { name: 'Botswana', code: 'BW', similarTo: ['ZA', 'NA', 'ZM'], aliases: [] },
-  { name: 'Belarus', code: 'BY', similarTo: ['RU', 'LV', 'LT'], aliases: ['White Russia'] },
+  { name: 'Belarus', code: 'BY', similarTo: ['RU', 'LV', 'LT'], aliases: [] },
   { name: 'Belize', code: 'BZ', similarTo: ['GT', 'HN', 'SV'], aliases: ['British Honduras'] },
   { name: 'Canada', code: 'CA', similarTo: ['US', 'AU', 'GB'], aliases: ['Canuck', 'Great White North'] },
   { name: 'Democratic Republic of the Congo', code: 'CD', similarTo: ['ZM', 'AO', 'TZ'], aliases: ['DR Congo', 'Congo-Kinshasa', 'DRC'] },

@@ -1,4 +1,4 @@
-// Removed explicit React import as not required for JSX with modern React setups
+// No React import needed with modern JSX transform
 
 interface CountdownProps {
   countdown: number;
@@ -6,20 +6,7 @@ interface CountdownProps {
 
 function Countdown({ countdown }: CountdownProps) {
   return (
-    <div
-      className="countdown"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '60vh',
-        fontSize: '3rem',
-        fontWeight: 700,
-        color: '#2563eb',
-        letterSpacing: '0.1em',
-      }}
-    >
+    <div className="countdown container-consistent">
       Starting in {countdown}
     </div>
   );

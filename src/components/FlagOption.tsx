@@ -41,6 +41,7 @@ function FlagOption({
       className={optionClass} 
       onClick={onClick}
       disabled={selectedAnswer !== null}
+      style={{ color: "#333" }}
     >
       {country.name}
     </button>
