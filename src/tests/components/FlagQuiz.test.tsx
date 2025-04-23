@@ -186,9 +186,9 @@ describe('FlagQuiz', () => {
     
     // Since there are only 2 mock questions, it should show results
     await waitFor(() => {
-      expect(screen.getByText(/Quiz Complete/i)).toBeInTheDocument();
-      expect(screen.getByText(/Your Score/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Play Again/i })).toBeInTheDocument();
+      expect(screen.getByText('Quiz Completed!')).toBeInTheDocument();
+      expect(screen.getByText(/points/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Try Again/i })).toBeInTheDocument();
     }, { timeout: 3000 });
   });
 }); 
