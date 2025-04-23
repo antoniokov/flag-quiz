@@ -10,6 +10,7 @@
 .quiz-progress, .quiz-score {
   font-size: 1.1rem;
   font-weight: 500;
+  color: var(--text-dark);
 }
 
 /* Quiz content */
@@ -28,6 +29,7 @@
 .quiz-question h2 {
   margin-bottom: 20px;
   font-size: 1.5rem;
+  color: var(--text-dark);
 }
 
 .flag-container {
@@ -60,7 +62,8 @@
 .flag-option {
   padding: 15px;
   border: 2px solid var(--gray-medium);
-  background-color: white;
+  background-color: var(--background-color);
+  color: var(--text-dark);
   border-radius: var(--border-radius);
   font-size: 1rem;
   font-weight: 500;
@@ -71,18 +74,20 @@
 }
 
 .flag-option:hover:not(:disabled) {
-  background-color: #f9f9f9;
-  border-color: #c0c0c0;
+  background-color: var(--gray-light);
+  border-color: var(--gray-dark);
 }
 
 .flag-option.correct {
   border-color: var(--success-color);
   background-color: var(--success-light);
+  color: var(--success-dark);
 }
 
 .flag-option.incorrect {
   border-color: var(--error-color);
   background-color: var(--error-light);
+  color: var(--error-dark);
 }
 
 /* Feedback */

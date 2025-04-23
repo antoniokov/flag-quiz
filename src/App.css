@@ -38,18 +38,7 @@
 }
 
 .read-the-docs {
-  color: #888;
-}
-
-:root {
-  --primary-color: #4285f4;
-  --primary-dark: #3367d6;
-  --success-color: #4caf50;
-  --error-color: #f44336;
-  --text-color: #333;
-  --text-light: #666;
-  --bg-color: #f9f9f9;
-  --border-color: #e0e0e0;
+  color: var(--text-medium);
 }
 
 * {
@@ -58,17 +47,14 @@
   padding: 0;
 }
 
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: var(--text-color);
-  background-color: #fff;
-}
+/* Body styling moved to base.css */
 
 .app-container {
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
+  background-color: var(--background-color);
+  color: var(--text-dark);
 }
 
 header {
@@ -84,7 +70,7 @@ header h1 {
 
 header p {
   font-size: 1.1rem;
-  color: var(--text-light);
+  color: var(--text-medium);
 }
 
 button {

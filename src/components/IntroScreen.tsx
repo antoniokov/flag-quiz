@@ -43,20 +43,7 @@ function IntroScreen({ voiceSupported, voiceMode, toggleVoiceMode, onStart }: In
       </p>
 
       {voiceSupported && (
-        <div
-          className="voice-mode-option"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '2rem',
-            gap: '1rem',
-            padding: '1rem',
-            borderRadius: '0.5rem',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-          }}
-        >
+        <div className="voice-mode-option">
           <button
             onClick={toggleVoiceMode}
             style={{

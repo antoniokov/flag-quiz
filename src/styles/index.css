@@ -6,4 +6,7 @@
 @import './voice.css';
 @import './results.css';
 
+/* Theme is automatically determined by system preference (prefers-color-scheme) */
+/* All theme-related variables are in base.css */
+
 /* Any additional global styles can go here */ 
