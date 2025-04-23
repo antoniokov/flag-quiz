@@ -12,14 +12,6 @@ import { TOTAL_QUESTIONS, DELAY_BEFORE_NEXT, COUNTDOWN_TIME, VOICE_RESTART_DELAY
 import { findBestMatch } from '../utils/speechUtils';
 import { calculateScore } from '../utils/scoreUtils';
 
-// Add TypeScript interfaces for the Web Speech API
-declare global {
-  interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
-  }
-}
-
 function FlagQuiz() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
   const [countdown, setCountdown] = useState<number>(COUNTDOWN_TIME / 1000);
