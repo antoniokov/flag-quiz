@@ -8,7 +8,7 @@ import IntroScreen from './IntroScreen';
 import Countdown from './Countdown';
 import Header from './Header';
 import VoiceFeedback from './VoiceFeedback';
-import { TOTAL_QUESTIONS, DELAY_BEFORE_NEXT } from '../constants';
+import { TOTAL_QUESTIONS, DELAY_BEFORE_NEXT, COUNTDOWN_TIME, VOICE_RESTART_DELAY, VOICE_ERROR_RESTART_DELAY, VOICE_LONG_ERROR_DELAY, VOICE_INIT_DELAY } from '../constants';
 import { findBestMatch } from '../utils/speechUtils';
 import { calculateScore } from '../utils/scoreUtils';
 
@@ -22,7 +22,7 @@ declare global {
 
 function FlagQuiz() {
   const [showIntro, setShowIntro] = useState<boolean>(true);
-  const [countdown, setCountdown] = useState<number>(3);
+  const [countdown, setCountdown] = useState<number>(COUNTDOWN_TIME / 1000);
   const [quizState, setQuizState] = useState<QuizState>({
     currentQuestion: null,
     score: 0,
@@ -104,7 +104,7 @@ function FlagQuiz() {
                 voiceMode) {
               startVoiceRecognition();
             }
-          }, 300); // Increased timeout to ensure recognition has time to stop
+          }, VOICE_RESTART_DELAY);
         }
       }
       
@@ -126,7 +126,7 @@ function FlagQuiz() {
           voiceMode &&
           event.error !== 'not-allowed' && // Don't retry if user denied permission
           event.error !== 'aborted') {     // Don't retry if deliberately aborted
-        setTimeout(() => startVoiceRecognition(), 500); // Increased timeout
+        setTimeout(() => startVoiceRecognition(), VOICE_ERROR_RESTART_DELAY);
       }
     };
     
@@ -143,7 +143,7 @@ function FlagQuiz() {
           if (!quizStateRef.current.selectedAnswer && voiceMode) {
             startVoiceRecognition();
           }
-        }, 500); // Increased timeout to ensure clean restart
+        }, VOICE_ERROR_RESTART_DELAY);
       }
     };
     
@@ -186,14 +186,14 @@ function FlagQuiz() {
   // Start the quiz after intro
   const handleStartQuiz = () => {
     setShowIntro(false);
-    setCountdown(3);
+    setCountdown(COUNTDOWN_TIME / 1000);
   };
   
   // Countdown before first question
   useEffect(() => {
     // Only run countdown if intro is done, quiz is at the first question and not answered/game over/loading
     if (!showIntro && !loading && quizState.questionIndex === 0 && !quizState.selectedAnswer && !quizState.gameOver) {
-      setCountdown(3);
+      setCountdown(COUNTDOWN_TIME / 1000);
       let interval: ReturnType<typeof setInterval>;
       interval = setInterval(() => {
         setCountdown(prev => {
@@ -265,7 +265,7 @@ function FlagQuiz() {
           if (!quizState.selectedAnswer && !quizState.gameOver && voiceMode) {
             startVoiceRecognition();
           }
-        }, 700); // Longer timeout for error recovery
+        }, VOICE_LONG_ERROR_DELAY);
       }
     }
   };
@@ -315,7 +315,7 @@ function FlagQuiz() {
       // Add a small delay to ensure any previous recognition has fully stopped
       setTimeout(() => {
         startVoiceRecognition();
-      }, 100);
+      }, VOICE_INIT_DELAY);
     }
     // Stop listening if quiz is over or voiceMode is off
     if ((!voiceMode || quizState.gameOver) && isListening) {
