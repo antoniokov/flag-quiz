@@ -1,0 +1,9 @@
+/* Import base styles */
+@import './base.css';
+
+/* Import component styles */
+@import './quiz.css';
+@import './voice.css';
+@import './results.css';
+
+/* Any additional global styles can go here */ 

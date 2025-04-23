@@ -51,7 +51,7 @@ function QuizResult({ score, totalQuestions, onRestart }: QuizResultProps) {
         </ul>
       </div>
       
-      <button className="restart-button" onClick={onRestart}>
+      <button className="button restart-button" onClick={onRestart}>
         Try Again
       </button>
     </div>

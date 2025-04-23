@@ -3,7 +3,7 @@ import { QuizQuestion, QuizState } from '../types';
 import { generateQuiz } from '../utils/quizUtils';
 import FlagOption from './FlagOption';
 import QuizResult from './QuizResult';
-import '../styles/FlagQuiz.css';
+import '../styles/index.css';
 import IntroScreen from './IntroScreen';
 import Countdown from './Countdown';
 import Header from './Header';

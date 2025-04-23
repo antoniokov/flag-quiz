@@ -1,0 +1,89 @@
+:root {
+  --primary-color: #4285f4;
+  --primary-dark: #3367d6;
+  --success-color: #4caf50;
+  --success-light: rgba(76, 175, 80, 0.1);
+  --success-dark: #2e7d32;
+  --error-color: #f44336;
+  --error-light: rgba(244, 67, 54, 0.1);
+  --error-dark: #c62828;
+  --warning-color: #ff9800;
+  --gray-light: #f5f5f5;
+  --gray-medium: #e0e0e0;
+  --gray-dark: #666;
+  --text-dark: #333;
+  --text-medium: #555;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --border-radius: 8px;
+  --transition-default: all 0.3s ease;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(244, 67, 54, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 67, 54, 0);
+  }
+}
+
+/* Main container */
+.flag-quiz {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Common buttons */
+.button {
+  padding: 12px 25px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.button:hover {
+  background-color: var(--primary-dark);
+}
+
+.button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .flag-quiz {
+    padding: 10px;
+  }
+}
+
+/* Debug indicator */
+.debug-mode {
+  background-color: var(--warning-color);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-left: auto;
+} 
